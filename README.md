@@ -24,8 +24,6 @@ Then:
 drun <docker_image_name>
 ```
 
-The command above will change directory to the directory to `/home/miopenpdb` and mount the home directory. The `PATH` is set up with to have MIOpenDriver callable and the user database file directory is located in miopenpdb's home directory.
-
 Once the docker is running on the remote system, this command can be used to execute the individual `MIOpenDriver` command:
 
 ```
