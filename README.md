@@ -6,7 +6,7 @@ To build the docker the script `build_docker.sh` as follows:
 ```
 
 * The `-s <docker_image_name>` is the name of the final docker image.
-* `-b <miopen_branch>` is the branch name. In this case, because we are defaulted to `--private` MIOpen repo, the default branch is `develop`.
+* `-b <miopen_branch>` is the branch name. In this case, because we are defaulted to the public MIOpen repo, the default branch is `master`.
 * `-s <miopen_src_dir>` is the MIOpen source directory. If this exists, it must be located in the Dockerfile directory. If it does not exist it is cloned from GitHub.
 * `--private` specified whether to use the private MIOpen repo, or the public repo. By default it is public, and by adding this flag it makes the selection private.
 * By default the backend selection is HIP, by using the `--opencl` flag it will create a OpenCL docker.
