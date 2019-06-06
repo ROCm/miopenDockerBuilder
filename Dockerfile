@@ -92,7 +92,12 @@ RUN CXXFLAGS='-isystem $PREFIX/include' cget -p $PREFIX install -f ./requirement
 # Build MIOpen
 WORKDIR $MIOPEN_DIR/build
 RUN git checkout $MIOPEN_BRANCH
-RUN cmake -DMIOPEN_BACKEND=OpenCL -DBoost_USE_STATIC_LIBS=Off -DCMAKE_PREFIX_PATH="$MIOPEN_DEPS" $MIOPEN_DIR
+RUN if [ "$MIOPEN_BACKEND" = "OpenCL" ]; then \
+           cmake -DMIOPEN_BACKEND=OpenCL -DBoost_USE_STATIC_LIBS=Off -DCMAKE_PREFIX_PATH="$MIOPEN_DEPS" $MIOPEN_DIR ; \
+    else \
+           CXX=/opt/rocm/hcc/bin/hcc cmake -DMIOPEN_BACKEND=HIP -DBoost_USE_STATIC_LIBS=Off -DCMAKE_PREFIX_PATH="/opt/rocm/hcc;/opt/rocm/hip;$MIOPEN_DEPS" $MIOPEN_DIR ; \
+    fi
+
 RUN make -j MIOpenDriver
 RUN make -j tests
 RUN make install

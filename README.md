@@ -1,12 +1,16 @@
 
-This dockerfile assumes the user `miopenpdb` exists:
 
 To build the docker the script `build_docker.sh` as follows:
 ```
-./build_docker.sh -s <miopen_src_path> -d <docker_image_name> -b <miopen_branch>
+./build_docker.sh -d <docker_image_name> -b <miopen_branch> -s <miopen_src_dir> --private --opencl
 ```
 
-Required arguments to `build_docker.sh` are the local MIOpen source directory `<miopen_src_path>`, and the name of the docker image `<docker_image_name>`.
+* The `-s <docker_image_name>` is the name of the final docker image.
+* `-b <miopen_branch>` is the branch name. In this case, because we are defaulted to `--private` MIOpen repo, the default branch is `develop`.
+* `-s <miopen_src_dir>` is the MIOpen source directory. If this exists, it must be located in the Dockerfile directory. If it does not exist it is cloned from GitHub.
+* `--private` specified whether to use the private MIOpen repo, or the public repo. By default it is public, and by adding this flag it makes the selection private.
+* By default the backend selection is HIP, by using the `--opencl` flag it will create a OpenCL docker.
+
 
 The script will pull MIOpen from the private repo, and checkout the requested branch, if nothing is stated as the requested branch, the script will default to the `develop` branch.
 

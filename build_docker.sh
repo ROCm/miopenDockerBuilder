@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USEAGE="Usage: ./build_docker.sh -d <docker_image_name> -b <miopen_branch> -s <miopen_src_dir> -p"
+USEAGE="Usage: ./build_docker.sh -d <docker_image_name> -b <miopen_branch> -s <miopen_src_dir> --private --opencl"
 
 
 if [ $# -lt 1 ]; then
@@ -16,7 +16,7 @@ BRANCHURL="https://github.com/ROCmSoftwarePlatform/MIOpen.git"
 SRCPATH=""
 USEPUBLIC=1
 SRCPATH="./MIOpen"
-
+MIOPEN_BACKEND="HIP"
 
 POSITIONAL=()
 while [[ $# -gt 0 ]]
@@ -41,6 +41,10 @@ case $key in
     ;;
     -p| --private)
     USEPUBLIC=0
+    shift # past argument
+    ;;
+    -o| --opencl)
+    MIOPEN_BACKEND="OpenCL"
     shift # past argument
     ;;
     -h|--help)
@@ -72,11 +76,11 @@ fi
 if [ ! -d "$SRCPATH" ]; then
 	git clone --branch ${BRANCHNAME} ${BRANCHURL} ${SRCPATH}
 else
-	echo "Folder ${SRCPATH} already exists."
+	echo "WARNING: Folder ${SRCPATH} already exists."
 fi
 
 
 #build the docker
-docker build -t ${DOCKNAME} --build-arg MIOPEN_BRANCH=${BRANCHNAME} --build-arg MIOPEN_SRC=${SRCPATH} .
+docker build -t ${DOCKNAME} --build-arg MIOPEN_BRANCH=${BRANCHNAME} --build-arg MIOPEN_SRC=${SRCPATH} --build-arg MIOPEN_BACKEND=${MIOPEN_BACKEND} .
 
 
