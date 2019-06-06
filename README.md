@@ -31,7 +31,3 @@ Once the docker is running on the remote system, this command can be used to exe
 ```
 docker exec -ti <my_container> sh -c "MIOpenDriver conv <args>"
 ```
-
-*Note:* MIOpenDriver is mapped to the PATH, so that it can be called from any directory.
-
-Future work is to allow for any home directory to be mapped to the docker.
