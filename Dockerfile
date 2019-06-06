@@ -1,11 +1,11 @@
 FROM ubuntu:16.04
 
-#ARG TUNA_USER=miopenpdb
 ARG PREFIX=/opt/rocm
 ARG MIOPEN_SRC=./MLOpen
 ARG MIOPEN_DIR=/MIOpen
 ARG MIOPEN_BRANCH=develop
 ARG MIOPEN_DEPS=$PREFIX/miopendeps
+ARG BACKEND=HIP
 
 RUN mkdir -p $MIOPEN_DIR
 ADD $MIOPEN_SRC $MIOPEN_DIR
@@ -13,9 +13,6 @@ ADD $MIOPEN_SRC $MIOPEN_DIR
 # Add rocm repository
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl apt-utils wget
 RUN curl https://raw.githubusercontent.com/RadeonOpenCompute/ROCm-docker/master/add-rocm.sh | bash
-
-#Download rocBLAS
-#RUN wget https://github.com/ROCmSoftwarePlatform/rocBLAS/releases/download/v2.1.0/rocblas-2.1.0.286-Linux.deb
 
 
 # Install dependencies required to build hcc
@@ -57,9 +54,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-
     rm -rf /var/lib/apt/lists/*
 
 
-#install rocBlas
-#RUN dpkg -i rocblas-2.1.0.286-Linux.deb
-
 
 # Setup ubsan environment to printstacktrace
 RUN ln -s /usr/bin/llvm-symbolizer-3.8 /usr/local/bin/llvm-symbolizer
@@ -76,7 +70,6 @@ RUN pip install cget
 RUN pip install https://github.com/pfultz2/rclone/archive/master.tar.gz
 
 #Copy In MIOpen
-#ADD $MIOPEN_SRC $MIOPEN_DIR
 WORKDIR $MIOPEN_DIR
 
 # Bypass unneeded dependencies
@@ -92,7 +85,8 @@ RUN CXXFLAGS='-isystem $PREFIX/include' cget -p $PREFIX install -f ./requirement
 # Build MIOpen
 WORKDIR $MIOPEN_DIR/build
 RUN git checkout $MIOPEN_BRANCH
-RUN if [ "$MIOPEN_BACKEND" = "OpenCL" ]; then \
+RUN echo "MIOPEN: Selected $BACKEND backend."
+RUN if [ "$BACKEND" = "OpenCL" ]; then \
            cmake -DMIOPEN_BACKEND=OpenCL -DBoost_USE_STATIC_LIBS=Off -DCMAKE_PREFIX_PATH="$MIOPEN_DEPS" $MIOPEN_DIR ; \
     else \
            CXX=/opt/rocm/hcc/bin/hcc cmake -DMIOPEN_BACKEND=HIP -DBoost_USE_STATIC_LIBS=Off -DCMAKE_PREFIX_PATH="/opt/rocm/hcc;/opt/rocm/hip;$MIOPEN_DEPS" $MIOPEN_DIR ; \
@@ -104,10 +98,7 @@ RUN make install
 
 
 
-
 #SET MIOPEN ENVIRONMENT VARIABLES
-#ENV MIOPEN_LOG_LEVEL=6
-#ENV MIOPEN_DISABLE_CACHE=1
 ENV PATH=$PREFIX/bin:$PATH
 ENV LD_LIBRARY_PATH=/opt/rocm/lib:$LD_LIRBARY_PATH
 RUN alias ll="ls -al"

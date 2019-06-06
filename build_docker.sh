@@ -1,6 +1,6 @@
 #!/bin/bash
 
-USEAGE="Usage: ./build_docker.sh -d <docker_image_name> -b <miopen_branch> -s <miopen_src_dir> --private --opencl"
+USEAGE="Usage: ./build_docker.sh -d <docker_image_name> -b <miopen_branch> -s <miopen_src_dir> --private --opencl --no-cache"
 
 
 if [ $# -lt 1 ]; then
@@ -16,7 +16,8 @@ BRANCHURL="https://github.com/ROCmSoftwarePlatform/MIOpen.git"
 SRCPATH=""
 USEPUBLIC=1
 SRCPATH="./MIOpen"
-MIOPEN_BACKEND="HIP"
+BACKEND="HIP"
+NC=""
 
 POSITIONAL=()
 while [[ $# -gt 0 ]]
@@ -44,7 +45,11 @@ case $key in
     shift # past argument
     ;;
     -o| --opencl)
-    MIOPEN_BACKEND="OpenCL"
+    BACKEND="OpenCL"
+    shift # past argument
+    ;;
+    -n| --no-cache)
+    NC="--no-cache"
     shift # past argument
     ;;
     -h|--help)
@@ -81,6 +86,6 @@ fi
 
 
 #build the docker
-docker build -t ${DOCKNAME} --build-arg MIOPEN_BRANCH=${BRANCHNAME} --build-arg MIOPEN_SRC=${SRCPATH} --build-arg MIOPEN_BACKEND=${MIOPEN_BACKEND} .
+docker build -t ${DOCKNAME} ${NC} --build-arg MIOPEN_BRANCH=${BRANCHNAME} --build-arg MIOPEN_SRC=${SRCPATH} --build-arg BACKEND=${BACKEND} .
 
 
