@@ -48,6 +48,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-
     vim \
     htop \
     openssh-server \
+    cmake-curses-gui \
     rocblas \
     xvfb && \
     apt-get clean && \
@@ -87,9 +88,9 @@ WORKDIR $MIOPEN_DIR/build
 RUN git checkout $MIOPEN_BRANCH
 RUN echo "MIOPEN: Selected $BACKEND backend."
 RUN if [ "$BACKEND" = "OpenCL" ]; then \
-           cmake -DMIOPEN_BACKEND=OpenCL -DBoost_USE_STATIC_LIBS=Off -DCMAKE_PREFIX_PATH="$MIOPEN_DEPS" $MIOPEN_DIR ; \
+           cmake -DMIOPEN_BACKEND=OpenCL -DMIOPEN_TEST_ALL=On -DBoost_USE_STATIC_LIBS=Off -DCMAKE_PREFIX_PATH="$MIOPEN_DEPS" $MIOPEN_DIR ; \
     else \
-           CXX=/opt/rocm/hcc/bin/hcc cmake -DMIOPEN_BACKEND=HIP -DBoost_USE_STATIC_LIBS=Off -DCMAKE_PREFIX_PATH="/opt/rocm/hcc;/opt/rocm/hip;$MIOPEN_DEPS" $MIOPEN_DIR ; \
+           CXX=/opt/rocm/hcc/bin/hcc cmake -DMIOPEN_BACKEND=HIP -DMIOPEN_TEST_ALL=On -DBoost_USE_STATIC_LIBS=Off -DCMAKE_PREFIX_PATH="/opt/rocm/hcc;/opt/rocm/hip;$MIOPEN_DEPS" $MIOPEN_DIR ; \
     fi
 
 RUN make -j MIOpenDriver
