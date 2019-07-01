@@ -14,6 +14,7 @@ ADD $MIOPEN_SRC $MIOPEN_DIR
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl apt-utils wget
 RUN curl https://raw.githubusercontent.com/RadeonOpenCompute/ROCm-docker/master/add-rocm.sh | bash
 
+ADD rocblas-2.2.11.3-Linux.deb /
 
 # Install dependencies required to build hcc
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-unauthenticated \
@@ -49,11 +50,14 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-
     htop \
     openssh-server \
     cmake-curses-gui \
-    rocblas \
     xvfb && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+
+
+# Install rocblas
+RUN dpkg -i rocblas-2.2.11.3-Linux.deb
 
 
 # Setup ubsan environment to printstacktrace
