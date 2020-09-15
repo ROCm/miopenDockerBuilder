@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-USAGE="Usage: ./build_docker.sh -d <docker_image_name> -b <miopen_branch> -s <miopen_src_dir> -v <rocm-version> --bkc <bkc-version-number> --private --opencl --no-cache"
+USAGE="Usage: ./build_docker.sh -d <docker_image_name> -b <miopen_branch> -v <rocm-version> --bkc <bkc-version-number> --opencl --no-cache"
 
 
 if [ $# -lt 1 ]; then
@@ -14,9 +14,6 @@ fi
 DOCKNAME="miopentuna"
 BRANCHNAME="develop"
 BRANCHURL="https://github.com/ROCmSoftwarePlatform/MIOpen.git"
-SRCPATH=""
-USEPRIVATE=0
-SRCPATH="./MIOpen"
 BACKEND="HIP"
 ROCMVERSION="0"
 BKC_VERSION=0
@@ -38,19 +35,10 @@ case $key in
     shift # past argument
     shift # past value
     ;;
-    -s|--sourcepath)
-    SRCPATH="./$2"
-    shift # past argument
-    shift # past value
-    ;;
     -v|--rocmversion)
     ROCMVERSION="$2"
     shift # past argument
     shift # past value
-    ;;
-    -p| --private)
-    USEPRIVATE=1
-    shift # past argument
     ;;
     -o| --opencl)
     BACKEND="OpenCL"
@@ -69,10 +57,8 @@ case $key in
     echo ${USAGE}
     echo "(-d / --dockername) the name of the docker"
     echo "(-b / --miopenbranch) the branch of miopen to be used"
-    echo "(-s / --sourcepath) location of the miopen source directory to be imported into the Docker"
     echo "(-v / --rocmversion) version of ROCm to tune with"
     echo "(-k / --bkc) OSDB BKC version to use (NOTE: non-zero value here will override ROCm version flag --rocmversion)"
-    echo "(-p / --private) Use MIOpen private repo if needed, DEPRECATED"
     echo "(-o / --opencl) Use OpenCL backend over HIP version"
     echo "(-n / --no-cache) Build the docker from scratch"
     echo
@@ -97,23 +83,8 @@ if [[ "${ROCMVERSION}" == "0" && ${BKC_VERSION} -eq 0 ]]; then
 fi
 
 
-#Clone MIOpen
-if [ ${USEPRIVATE} -eq 1 ]; then
-	echo "**Using private MIOpen GitHub repo."
-	BRANCHURL="https://github.com/AMDComputeLibraries/MLOpen.git"
-else
-	echo "**Using public MIOpen GitHub repo."
-fi
-
-if [ ! -d "$SRCPATH" ]; then
-	git clone --branch ${BRANCHNAME} ${BRANCHURL} ${SRCPATH}
-else
-	echo "WARNING: Folder ${SRCPATH} already exists."
-fi
-
-
 
 #build the docker
-docker build -t ${DOCKNAME} ${NC} --build-arg OSDB_BKC_VERSION=${BKC_VERSION} --build-arg MIOPEN_BRANCH=${BRANCHNAME} --build-arg MIOPEN_SRC=${SRCPATH} --build-arg BACKEND=${BACKEND} --build-arg ROCMVERSION=${ROCMVERSION} .
+docker build -t ${DOCKNAME} ${NC} --build-arg OSDB_BKC_VERSION=${BKC_VERSION} --build-arg MIOPEN_BRANCH=${BRANCHNAME} --build-arg BACKEND=${BACKEND} --build-arg ROCMVERSION=${ROCMVERSION} .
 
 
