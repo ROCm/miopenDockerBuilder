@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-USAGE="Usage: ./build_docker.sh -d <docker_image_name> -b <miopen_branch> -v <rocm-version> --bkc <bkc-version-number> --opencl --no-cache"
+USAGE="Usage: ./build_docker.sh -d <docker_image_name> -v <rocm-version> --bkc <bkc-version-number> --no-cache"
 
 
 if [ $# -lt 1 ]; then
@@ -11,7 +11,7 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
-DOCKNAME="miopentuna"
+DOCKNAME="miopen-mixedbag"
 BRANCHNAME="develop"
 BRANCHURL="https://github.com/ROCmSoftwarePlatform/MIOpen.git"
 BACKEND="HIP"
@@ -30,19 +30,10 @@ case $key in
     shift # past argument
     shift # past value
     ;;
-    -b|--miopenbranch)
-    BRANCHNAME="$2"
-    shift # past argument
-    shift # past value
-    ;;
     -v|--rocmversion)
     ROCMVERSION="$2"
     shift # past argument
     shift # past value
-    ;;
-    -o| --opencl)
-    BACKEND="OpenCL"
-    shift # past argument
     ;;
     -k| --bkc)
     BKC_VERSION=$2 #overrides rocmversion
@@ -56,10 +47,8 @@ case $key in
     -h|--help)
     echo ${USAGE}
     echo "(-d / --dockername) the name of the docker"
-    echo "(-b / --miopenbranch) the branch of miopen to be used"
     echo "(-v / --rocmversion) version of ROCm to tune with"
     echo "(-k / --bkc) OSDB BKC version to use (NOTE: non-zero value here will override ROCm version flag --rocmversion)"
-    echo "(-o / --opencl) Use OpenCL backend over HIP version"
     echo "(-n / --no-cache) Build the docker from scratch"
     echo
     exit 0
@@ -85,6 +74,6 @@ fi
 
 
 #build the docker
-docker build -t ${DOCKNAME} ${NC} --build-arg OSDB_BKC_VERSION=${BKC_VERSION} --build-arg MIOPEN_BRANCH=${BRANCHNAME} --build-arg BACKEND=${BACKEND} --build-arg ROCMVERSION=${ROCMVERSION} .
+docker build -t ${DOCKNAME} ${NC} --build-arg OSDB_BKC_VERSION=${BKC_VERSION} --build-arg ROCMVERSION=${ROCMVERSION} .
 
 

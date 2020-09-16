@@ -1,12 +1,8 @@
 FROM ubuntu:18.04
 
-ARG TUNA_USER=miopenpdb
-ARG PREFIX=/opt/rocm
-ARG MIOPEN_DIR=/root/dMIOpen
-ARG MIOPEN_BRANCH=develop
-ARG MIOPEN_DEPS=$PREFIX/miopendeps
+ARG MIOPEN_DIR=/root/MIOpen
 ARG BACKEND=HIP
-ARG ROCMVERSION=3.5
+ARG ROCMVERSION=3.7
 ARG OSDB_BKC_VERSION=0
 ARG REPO_DIR=compute-rocm-dkms-no-npi-hipclang
 
@@ -45,7 +41,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-
     libncurses5-dev \
     libnuma-dev \
     libpthread-stubs0-dev \
-    llvm-amdgpu \
     miopengemm \
     pkg-config \
     python \
@@ -57,7 +52,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-
     software-properties-common \
     wget \
     rocm-dev \
-    rocm-device-libs \
     rocm-opencl \
     rocm-opencl-dev \
     rocm-cmake \
@@ -68,47 +62,34 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --allow-
     rm -rf /var/lib/apt/lists/*
 
 
-# Setup ubsan environment to printstacktrace
-RUN ln -s /usr/bin/llvm-symbolizer-3.8 /usr/local/bin/llvm-symbolizer
-ENV UBSAN_OPTIONS=print_stacktrace=1
-
-# Install an init system
-RUN wget https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64.deb
-RUN dpkg -i dumb-init_*.deb && rm dumb-init_*.deb
-
-# Install cget
-RUN pip install cget
-
-# Install rclone
-RUN pip install https://github.com/pfultz2/rclone/archive/master.tar.gz
-
-#Clone MIOpen
-RUN git clone --branch $MIOPEN_BRANCH https://github.com/ROCmSoftwarePlatform/MIOpen.git $MIOPEN_DIR
-WORKDIR $MIOPEN_DIR
-
-# Install dependencies
-RUN cmake -P install_deps.cmake --minimum --prefix $MIOPEN_DEPS
-
-# Build MIOpen
-WORKDIR $MIOPEN_DIR/build
-RUN git checkout $MIOPEN_BRANCH
-RUN echo "MIOPEN: Selected $BACKEND backend."
-RUN if [ $BACKEND = "OpenCL" ]; then \
-           cmake -DMIOPEN_CACHE_DIR=/home/$TUNA_USER/.cache -DMIOPEN_USER_DB_PATH=/home/$TUNA_USER/.config/miopen -DMIOPEN_BACKEND=OpenCL -DMIOPEN_HIP_COMPILER=/opt/rocm/llvm/bin/clang++ -DCMAKE_PREFIX_PATH="$MIOPEN_DEPS" $MIOPEN_DIR ; \
-    else \
-           CXX=/opt/rocm/llvm/bin/clang++ cmake -DMIOPEN_CACHE_DIR=/home/$TUNA_USER/.cache -DMIOPEN_USER_DB_PATH=/home/$TUNA_USER/.config/miopen -DMIOPEN_BACKEND=HIP -DCMAKE_PREFIX_PATH=$MIOPEN_DEPS $MIOPEN_DIR ; \
-    fi
-
-RUN make -j
-RUN make install
+RUN wget http://compute-artifactory.amd.com/artifactory/list/rocm-osdb-deb/compute-rocm-dkms-staging-82/llvm-amdgpu-12.0.dev-amd64.deb
+RUN wget http://compute-artifactory.amd.com/artifactory/list/rocm-osdb-deb/compute-rocm-dkms-staging-82/rocm-device-libs-1.0.0.637-rocm-dkms-staging-82-d66378e-Linux.deb
+RUN dpkg -i llvm-amdgpu-12.0.dev-amd64.deb
+RUN dpkg -i rocm-device-libs-1.0.0.637-rocm-dkms-staging-82-d66378e-Linux.deb
 
 
 #SET MIOPEN ENVIRONMENT VARIABLES
 ENV MIOPEN_LOG_LEVEL=6
 ENV PATH=$PREFIX/miopen/bin:$PREFIX/bin:$PATH
 ENV LD_LIBRARY_PATH=/opt/rocm/lib:$LD_LIRBARY_PATH
+ENV DEVICE_LIB_PATH=/opt/rocm-3.9.0-82/amdgcn/bitcode
+ENV HIP_CLANG_PATH=/opt/rocm-3.9.0-82/llvm/bin
+ENV HSA_FORCE_ASIC_TYPE="10.3.0 Sienna_Cichlid 18"
+ENV CXX=/opt/rocm-3.9.0-82/llvm/bin/clang++
+ENV CC=/opt/rocm-3.9.0-82/llvm/bin/clang
 RUN alias ll="ls -al"
 RUN ulimit -c unlimited
+
+
+#Clone MIOpen
+RUN git clone https://github.com/ROCmSoftwarePlatform/MIOpen.git $MIOPEN_DIR
+WORKDIR $MIOPEN_DIR
+
+# Install dependencies
+RUN cmake -P install_deps.cmake --minimum
+
+#SET MIOPEN ENVIRONMENT VARIABLES
 RUN apt update && apt install -y kmod
 RUN apt update && apt install -y mysql-client
 RUN apt update && apt install -y ssh 
+
