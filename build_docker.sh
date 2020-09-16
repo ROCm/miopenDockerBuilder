@@ -11,9 +11,7 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
-DOCKNAME="miopen-mixedbag"
-BRANCHNAME="develop"
-BRANCHURL="https://github.com/ROCmSoftwarePlatform/MIOpen.git"
+DOCKNAME="mixedbag"
 BACKEND="HIP"
 ROCMVERSION="0"
 BKC_VERSION=0

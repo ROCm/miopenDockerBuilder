@@ -1,6 +1,5 @@
 FROM ubuntu:18.04
 
-ARG MIOPEN_DIR=/root/MIOpen
 ARG BACKEND=HIP
 ARG ROCMVERSION=3.7
 ARG OSDB_BKC_VERSION=0
@@ -69,7 +68,6 @@ RUN dpkg -i rocm-device-libs-1.0.0.637-rocm-dkms-staging-82-d66378e-Linux.deb
 
 
 #SET MIOPEN ENVIRONMENT VARIABLES
-ENV MIOPEN_LOG_LEVEL=6
 ENV PATH=$PREFIX/miopen/bin:$PREFIX/bin:$PATH
 ENV LD_LIBRARY_PATH=/opt/rocm/lib:$LD_LIRBARY_PATH
 ENV DEVICE_LIB_PATH=/opt/rocm-3.9.0-82/amdgcn/bitcode
@@ -80,13 +78,6 @@ ENV CC=/opt/rocm-3.9.0-82/llvm/bin/clang
 RUN alias ll="ls -al"
 RUN ulimit -c unlimited
 
-
-#Clone MIOpen
-RUN git clone https://github.com/ROCmSoftwarePlatform/MIOpen.git $MIOPEN_DIR
-WORKDIR $MIOPEN_DIR
-
-# Install dependencies
-RUN cmake -P install_deps.cmake --minimum
 
 #SET MIOPEN ENVIRONMENT VARIABLES
 RUN apt update && apt install -y kmod
